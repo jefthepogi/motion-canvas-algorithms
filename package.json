@@ -2,21 +2,25 @@
   "name": "algorithms",
   "private": true,
   "version": "0.0.0",
+  "workspaces": [
+    "examples/*"
+  ],
   "scripts": {
-    "start": "vite",
-    "serve": "vite",
-    "build": "tsc && vite build"
+    "start:linearsearch": "npm run dev --workspace=linearsearch",
+    "build:all": "npm run build --workspaces"
   },
   "dependencies": {
     "@lezer/python": "^1.1.18",
     "@motion-canvas/2d": "^3.17.2",
     "@motion-canvas/core": "^3.17.2",
-    "@motion-canvas/ffmpeg": "^1.1.0"
+    "@motion-canvas/ffmpeg": "^3.17.2"
   },
   "devDependencies": {
     "@motion-canvas/ui": "^3.17.2",
     "@motion-canvas/vite-plugin": "^3.17.2",
+    "@types/node": "^26.0.1",
+    "cross-env": "^10.1.0",
     "typescript": "^5.2.2",
-    "vite": "^4.0.0"
+    "vite": "^5.4.0"
   }
 }

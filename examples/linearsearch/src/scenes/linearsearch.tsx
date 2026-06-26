@@ -18,8 +18,8 @@ export default makeScene2D(function* (view) {
     selection: '#0d7eae',
   };  
 
-  view.fill(theme.bgDark)
-  Code.defaultHighlighter = new LezerHighlighter(parser)
+    view.fill(theme.bgDark)
+    Code.defaultHighlighter = new LezerHighlighter(parser)
 
   const data = [17, 2, 8, 6, 24, 7, 15, 21]
   const searched_data = [7, 3]
