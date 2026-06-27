@@ -51,7 +51,7 @@ if (rootPackage.workspaces) {
   }
 }
 
-console.log(`✅ All guardrails passed. ◌ Scaffolding silo: examples/${projectName}...`);
+console.log(`✅ All guardrails passed. 🔄 Scaffolding silo: examples/${projectName}...`);
 
 // 2. Create directory tree
 fs.mkdirSync(path.join(targetDir, 'src', 'scenes'), { recursive: true });
@@ -66,6 +66,14 @@ fs.writeFileSync(
     scripts: {
       "dev": "vite",
       "build": "tsc && vite build"
+    },
+    dependencies: {
+        "@motion-canvas/2d": "^3.17.2",
+        "@motion-canvas/core": "^3.17.2"
+    },
+    devDependencies: {
+        "@motion-canvas/vite-plugin": "^3.16.0",
+        "vite": "^5.4.0"
     }
   }, null, 2)
 );
@@ -76,11 +84,9 @@ fs.writeFileSync(
   JSON.stringify({
     "extends": "@motion-canvas/2d/tsconfig.project.json",
     "compilerOptions": {
-      "target": "ES2022",
-      "module": "NodeNext",
-      "moduleResolution": "NodeNext",
-      "skipLibCheck": true,
-      "types": ["node"]
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler" 
     },
     "include": ["src/**/*", "vite.config.ts"]
   }, null, 2)
@@ -89,15 +95,28 @@ fs.writeFileSync(
 // 5. Write vite.config.ts
 fs.writeFileSync(
   path.join(targetDir, 'vite.config.ts'),
-  `import {defineConfig} from 'vite';
-import motionCanvas from '@motion-canvas/vite-plugin';
-import ffmpeg from '@motion-canvas/ffmpeg';
+  `// IMPORTANT: The @motion-canvas/vite-plugin package is distributed as CommonJS, 
+// which causes import errors in modern ESM projects. The standard import motionCanvas 
+// from '@motion-canvas/vite-plugin' WILL NOT WORK.
+
+// You MUST use the createRequire workaround.
+
+import { defineConfig } from 'vite';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const motionCanvasModule = require('@motion-canvas/vite-plugin');
+const motionCanvas = motionCanvasModule.default || motionCanvasModule;
+const ffmpegModule = require('@motion-canvas/ffmpeg');
+const ffmpeg = ffmpegModule.default || ffmpegModule
 
 export default defineConfig({
-  plugins: [
-    motionCanvas(),
-    ffmpeg(),
-  ],
+  plugins: [motionCanvas(), ffmpeg()],
+  server: {
+    fs: {
+      strict: false, // Optional: useful if you are linking external/local packages
+    },
+  },
 });
 `
 );
@@ -106,10 +125,13 @@ export default defineConfig({
 fs.writeFileSync(
   path.join(targetDir, 'src', 'project.ts'),
   `import {makeProject} from '@motion-canvas/core';
-import mainScene from './scenes/main';
+
+import main from './scenes/main?scene';
 
 export default makeProject({
-  scenes: [mainScene],
+  scenes: [
+    main
+  ],
 });
 `
 );
@@ -119,8 +141,11 @@ fs.writeFileSync(
   path.join(targetDir, 'src', 'scenes', 'main.tsx'),
   `import {makeScene2D, Txt} from '@motion-canvas/2d';
 import {all, createRef} from '@motion-canvas/core';
+import {Theme} from '../styles';
 
 export default makeScene2D(function* (view) {
+  view.fill(Theme.bgDark);
+
   const textRef = createRef<Txt>();
 
   view.add(
@@ -137,13 +162,39 @@ export default makeScene2D(function* (view) {
 `
 );
 
-// 8. Safely inject into Root Manifest
+// 8. Create styles.js
+fs.writeFileSync(path.join(targetDir, 'src', 'styles.js'),
+`import {Color} from '@motion-canvas/core';
+
+export const DataColors = {
+  main: new Color('#14adec'),
+  stroke: new Color('#004b6b'),
+  bg: new Color('#002535'),
+};
+
+export const CodeColors = {
+  main: new Color('#dc1f65'),
+  stroke: new Color('#720029'),
+  bg: new Color('#370E1D'),
+};
+
+export const Theme = {
+  bg: '#24211d',
+  bgDark: '#0f0d0c',
+  bgDarker: '#050404',
+  stroke: '#66615c',
+  radius: 8,
+};`
+)
+
+// 9. Create a Typescript Ambient Declaration File
+fs.writeFileSync(path.join(targetDir, 'src', 'motion-canvas.d.ts'), `/// <reference types="@motion-canvas/core/project" />`)
+
+// 9. Safely inject into Root Manifest
 if (!rootPackage.scripts) rootPackage.scripts = {};
 rootPackage.scripts[projectName] = `npm run dev --workspace=${projectName}`;
 
 fs.writeFileSync(rootPackagePath, JSON.stringify(rootPackage, null, 2), 'utf8');
 console.log(`🔗 Automatically added "${projectName}" command to root package.json!`);
 
-console.log(`\n✅ Success! Now do the following to initialize the project:
-             \n1. Run "npm install"
-             \n2. Run "npm run ${projectName}" to access the live editor.`);
+console.log(`\n✅ Success! Now do the following to initialize the project:\n1. Run "npm install"\n2. Run "npm run ${projectName}" to access the live editor.`);

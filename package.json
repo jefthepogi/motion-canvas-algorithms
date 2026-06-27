@@ -9,7 +9,8 @@
     "create-example": "node scripts/create-example.js",
     "delete-example": "node scripts/delete-example.js",
     "linearsearch": "npm run dev --workspace=linearsearch",
-    "build:all": "npm run build --workspaces"
+    "build:all": "npm run build --workspaces",
+    "binarysearch": "npm run dev --workspace=binarysearch"
   },
   "dependencies": {
     "@lezer/python": "^1.1.18",
