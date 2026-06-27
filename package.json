@@ -6,7 +6,9 @@
     "examples/*"
   ],
   "scripts": {
-    "start:linearsearch": "npm run dev --workspace=linearsearch",
+    "create-example": "node scripts/create-example.js",
+    "delete-example": "node scripts/delete-example.js",
+    "linearsearch": "npm run dev --workspace=linearsearch",
     "build:all": "npm run build --workspaces"
   },
   "dependencies": {
