@@ -11,23 +11,23 @@ if (!userArg) {
 }
 
 const projectName = userArg.toLowerCase().trim().replace(/[^a-z0-9-_]/g, '-');
-const targetDir = path.join(process.cwd(), 'examples', projectName);
-const rootPackagePath = path.join(process.cwd(), 'package.json');
-const viteCacheDir = path.join(process.cwd(), 'node_modules', '.vite');
+const TARGET_DIRECTORY = path.join(process.cwd(), 'examples', projectName);
+const ROOT_PKG_PATH = path.join(process.cwd(), 'package.json');
+const VITE_CACHE_DIRECTORY = path.join(process.cwd(), 'node_modules', '.vite');
 
 console.log(`🧹 Preparing to safely remove workspace silo: examples/${projectName}...`);
 
 // --- GUARDRAIL 1: Check Folder Existence ---
-if (!fs.existsSync(targetDir)) {
+if (!fs.existsSync(TARGET_DIRECTORY)) {
   console.error(`⛔ Error: No directory named "examples/${projectName}" exists on disk.`);
   process.exit(1);
 }
 
 // --- GUARDRAIL 2: Read & Verify Root Config ---
 let rootPackage = null;
-if (fs.existsSync(rootPackagePath)) {
+if (fs.existsSync(ROOT_PKG_PATH)) {
   try {
-    rootPackage = JSON.parse(fs.readFileSync(rootPackagePath, 'utf8'));
+    rootPackage = JSON.parse(fs.readFileSync(ROOT_PKG_PATH, 'utf8'));
   } catch (err) {
     console.error('⛔ Error: Your root package.json file is malformed or corrupted.');
     process.exit(1);
@@ -40,8 +40,8 @@ if (fs.existsSync(rootPackagePath)) {
 // 2. Perform File and Folder Deletion
 try {
   // Recursively wipes out the folder (works perfectly on Windows/Mac/Linux natively)
-  fs.rmSync(targetDir, { recursive: true, force: true });
-  console.log(`🗑️ Successfully deleted "examples/${projectName}" and its child directories.`);
+  fs.rmSync(TARGET_DIRECTORY, { recursive: true, force: true });
+  console.log(` Successfully deleted "examples/${projectName}" and its child directories.`);
 } catch (err) {
   console.error(`⛔ Error deleting folder: ${err.message}`);
   process.exit(1);
@@ -52,8 +52,8 @@ if (rootPackage.scripts && rootPackage.scripts[projectName]) {
   delete rootPackage.scripts[projectName];
   
   try {
-    fs.writeFileSync(rootPackagePath, JSON.stringify(rootPackage, null, 2), 'utf8');
-    console.log(`✂️ Removed "${projectName}" command from your root package.json.`);
+    fs.writeFileSync(ROOT_PKG_PATH, JSON.stringify(rootPackage, null, 2), 'utf8');
+    console.log(`Removed "${projectName}" command from your root package.json.`);
   } catch (err) {
     console.error(`⚠️ Could not update root package.json automatically: ${err.message}`);
   }
@@ -62,9 +62,9 @@ if (rootPackage.scripts && rootPackage.scripts[projectName]) {
 }
 
 // 4. Force Prune Vite's internal module dependency mapping
-if (fs.existsSync(viteCacheDir)) {
+if (fs.existsSync(VITE_CACHE_DIRECTORY)) {
   try {
-    fs.rmSync(viteCacheDir, { recursive: true, force: true });
+    fs.rmSync(VITE_CACHE_DIRECTORY, { recursive: true, force: true });
     console.log('⚡ Cleared hidden Vite metadata cache files successfully.');
   } catch (err) {
     console.warn('⚠️ Note: Vite cache directory was busy and couldn\'t be cleared automatically.');
@@ -75,6 +75,7 @@ if (fs.existsSync(viteCacheDir)) {
 try {
   console.log('🔄 Re-indexing active npm workspace configurations...');
   // Force clean the cache and update symlinks
+  console.log('🔄 Running npm install...');
   execSync('npm install', { stdio: 'ignore' });
   console.log('🔗 Successfully decoupled workspace links from your dependency tree.');
 } catch (err) {
@@ -82,4 +83,4 @@ try {
   console.error('⚠️ Warning: Failed to run automatic npm optimization pass.');
 }
 
-console.log(`\n✅ Success! Run "npm install" at your project root to clean the workspace tree memory map.`);
+console.log(`\n✅ Success! The example has been deleted and the workspace is now cleaned.`);
