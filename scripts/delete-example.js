@@ -6,7 +6,7 @@ import { execSync } from 'child_process';
 const userArg = process.argv[2];
 
 if (!userArg) {
-  console.error('❌ Error: Please specify the name of the silo to delete. Example: npm run delete-silo binary-search');
+  console.error('⛔ Error: Please specify the name of the silo to delete. Example: npm run delete-silo binary-search');
   process.exit(1);
 }
 
@@ -19,7 +19,7 @@ console.log(`🧹 Preparing to safely remove workspace silo: examples/${projectN
 
 // --- GUARDRAIL 1: Check Folder Existence ---
 if (!fs.existsSync(targetDir)) {
-  console.error(`❌ Error: No directory named "examples/${projectName}" exists on disk.`);
+  console.error(`⛔ Error: No directory named "examples/${projectName}" exists on disk.`);
   process.exit(1);
 }
 
@@ -29,11 +29,11 @@ if (fs.existsSync(rootPackagePath)) {
   try {
     rootPackage = JSON.parse(fs.readFileSync(rootPackagePath, 'utf8'));
   } catch (err) {
-    console.error('❌ Error: Your root package.json file is malformed or corrupted.');
+    console.error('⛔ Error: Your root package.json file is malformed or corrupted.');
     process.exit(1);
   }
 } else {
-  console.error('❌ Error: Root package.json was not found.');
+  console.error('⛔ Error: Root package.json was not found.');
   process.exit(1);
 }
 
@@ -43,7 +43,7 @@ try {
   fs.rmSync(targetDir, { recursive: true, force: true });
   console.log(`🗑️ Successfully deleted "examples/${projectName}" and its child directories.`);
 } catch (err) {
-  console.error(`❌ Error deleting folder: ${err.message}`);
+  console.error(`⛔ Error deleting folder: ${err.message}`);
   process.exit(1);
 }
 
